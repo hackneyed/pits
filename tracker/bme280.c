@@ -439,7 +439,7 @@ void *BME280Loop(void *some_void_ptr)
 			
 			GPS->BMP180Temperature = bme280Temperature(&bme);
 			GPS->Pressure = bme280Pressure(&bme);
-			GPS->Humidity = bme280Humidity(&bme);
+			GPS->ExternalHumidity = bme280Humidity(&bme);
 
 			// printf("Temperature is %5.2lf\n", GPS->BMP180Temperature);
 			// printf("Pressure is %5.2lf\n", GPS->Pressure);
