@@ -17,6 +17,7 @@ struct TGPS
 	float BatteryVoltage;
 	float BMP180Temperature;
 	float Pressure;
+	float BME280Humidity;
 	float BoardCurrent;
 	//int DS18B20Count;
 	float PredictedLongitude, PredictedLatitude;

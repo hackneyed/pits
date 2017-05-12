@@ -86,6 +86,7 @@ int bme280Calibration(struct TBME *bme);
 int bme280ReadInt(struct TBME *bme, unsigned char address);
 // double bme280ReadUP(short fd);
 int BMEAddress;
+bool
 
 // detection code doesn't work well, just set the correct address here
 
@@ -445,11 +446,11 @@ void *BME280Loop(void *some_void_ptr)
 			
 			GPS->BMP180Temperature = bme280Temperature(&bme);
 			GPS->Pressure = bme280Pressure(&bme);
-			GPS->ExternalHumidity = bme280Humidity(&bme);
+			GPS->BME280Humidity = bme280Humidity(&bme);
 
 			 printf("Temperature is %5.2lf\n", GPS->BMP180Temperature);
 			 printf("Pressure is %5.2lf\n", GPS->Pressure);
-			 printf("Humidity is %5.2lf\n", GPS->ExternalHumidity);
+			 printf("Humidity is %5.2lf\n", GPS->BME280Humidity);
 
 			close(bme.fd);
 		}

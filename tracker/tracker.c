@@ -726,6 +726,7 @@ int main(void)
 	GPS.BoardCurrent = 0.0;	
 	GPS.BMP180Temperature = 0.0;
 	GPS.Pressure = 0.0;
+	GPS.BME280Humidity = 0.0;
 	GPS.MaximumAltitude = 0.0;
 //	GPS.DS18B20Count = 0;
 

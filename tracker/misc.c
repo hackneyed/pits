@@ -818,7 +818,7 @@ int BuildSentence(unsigned char *TxLine, int Channel, struct TGPS *GPS)
 	// BMP Pressure/Temperature/Humidity, if available
 	if (Config.EnableBME280)
 	{
-		sprintf(ExtraFields2, ",%3.1f,%.0f,%0.1f", GPS->BMP180Temperature, GPS->Pressure, GPS->ExternalHumidity);
+		sprintf(ExtraFields2, ",%3.1f,%.0f,%0.1f", GPS->BMP180Temperature, GPS->Pressure, GPS->BME280Humidity);
 	}
 	else if (Config.EnableBMP085 || Config.EnableBMP280)
 	{
