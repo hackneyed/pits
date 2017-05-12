@@ -17,13 +17,14 @@
 #include <wiringPiSPI.h>
 
 #include "gps.h"
-#include "DS18B20.h"
+//#include "DS18B20.h"
 #include "adc.h"
 #include "misc.h"
 #include "snapper.h"
 #include "led.h"
 #include "bmp085.h"
 #include "lora.h"
+#include "HTU21D.h"
 
 // RFM98
 uint8_t currentMode = 0x81;

@@ -40,7 +40,7 @@
 #include <inttypes.h>
 
 #include "gps.h"
-#include "DS18B20.h"
+//#include "DS18B20.h"
 #include "adc.h"
 #include "adc_i2c.h"
 #include "misc.h"
@@ -53,6 +53,7 @@
 #include "pipe.h"
 #include "prediction.h"
 #include "log.h"
+#include "HTU21D.h"
 
 struct TConfig Config;
 
@@ -162,6 +163,12 @@ void LoadConfigFile(struct TConfig *Config)
 		printf("BME280 Enabled\n");
 	}
 
+	ReadBoolean(fp, "enable_bmp280", -1, 0, &(Config->EnableBMP280));
+	if (Config->EnableBMP280)
+	{
+		printf("BMP280 Enabled\n");
+	}
+
 	ReadString(fp, "pipe_payload", -1, Config->Channels[PIPE_CHANNEL].PayloadID, sizeof(Config->Channels[PIPE_CHANNEL].PayloadID), 0);
 	if (Config->Channels[PIPE_CHANNEL].PayloadID[0])
 	{
@@ -172,6 +179,12 @@ void LoadConfigFile(struct TConfig *Config)
 	if (Config->ExternalDS18B20)
 	{
 		printf("External DS18B20 Enabled\n");
+	}
+
+	ReadBoolean(fp, "external_temp_hum", -1, 0, &(Config->ExternalTempHumx21));
+	if (Config->ExternalTempHumx21)
+	{
+		printf("External HTU21/Si7021 Temp/Hum Enabled\n");
 	}
 
 	Config->Camera = ReadCameraType(fp, "camera");
@@ -608,7 +621,9 @@ int main(void)
 	unsigned char Sentence[200];
 	struct stat st = {0};
 	struct TGPS GPS;
-	pthread_t PredictionThread, LoRaThread, APRSThread, GPSThread, DS18B20Thread, ADCThread, CameraThread, BMP085Thread, BME280Thread, LEDThread, LogThread, PipeThread;
+	pthread_t PredictionThread, LoRaThread, APRSThread, GPSThread,
+		HTU21DThread, ADCThread, CameraThread, BMP085Thread,
+		BME280Thread, BMP280Thread, LEDThread, LogThread, PipeThread;
 	if (prog_count("tracker") > 1)
 	
 	{
@@ -705,14 +720,14 @@ int main(void)
 	GPS.Satellites = 0;
 	GPS.Speed = 0.0;
 	GPS.Direction = 0.0;
-	GPS.DS18B20Temperature[0] = 0.0;
-	GPS.DS18B20Temperature[1] = 0.0;
+	GPS.HTU21DTemperature = 0.0;
+	GPS.ExternalHumidity = 0.0;
 	GPS.BatteryVoltage = 0.0;
 	GPS.BoardCurrent = 0.0;	
 	GPS.BMP180Temperature = 0.0;
 	GPS.Pressure = 0.0;
 	GPS.MaximumAltitude = 0.0;
-	GPS.DS18B20Count = 0;
+//	GPS.DS18B20Count = 0;
 
 	
 	// Set up I/O
@@ -811,14 +826,16 @@ int main(void)
 		}
 	}
 	
-	if ((Config.BoardType != 3) && (Config.BoardType != 4))
-	{
-		if (pthread_create(&DS18B20Thread, NULL, DS18B20Loop, &GPS))
-		{
-			fprintf(stderr, "Error creating DS18B20s thread\n");
-			return 1;
-		}
-	}
+	// disable DS18B20
+
+//	if ((Config.BoardType != 3) && (Config.BoardType != 4))
+//	{
+//		if (pthread_create(&DS18B20Thread, NULL, DS18B20Loop, &GPS))
+//		{
+//			fprintf(stderr, "Error creating DS18B20s thread\n");
+//			return 1;
+//		}
+//	}
 
 	if ((Config.BoardType != 3) && (Config.BoardType != 4) && (!Config.DisableADC))
 	{
@@ -895,6 +912,26 @@ int main(void)
 		}
 	}
 	
+	// use BME280 driver and ignore humidity
+	if (Config.EnableBMP280)
+	{
+		if (pthread_create(&BMP280Thread, NULL, BME280Loop, &GPS))
+		{
+			fprintf(stderr, "Error creating BMP280 thread\n");
+			return 1;
+		}
+	}
+
+	// support for external HTU21/Si7021 temp/hum sensor
+	if (Config.ExternalTempHumx21)
+	{
+		if (pthread_create(&HTU21DThread, NULL, HTU21DLoop, &GPS))
+		{
+			fprintf(stderr, "Error creating HTU21D thread\n");
+			return 1;
+		}
+	}
+
 	if (Config.Channels[PIPE_CHANNEL].PayloadID[0])
 	{
 		if (pthread_create(&PipeThread, NULL, PipeLoop, &GPS))

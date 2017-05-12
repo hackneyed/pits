@@ -149,7 +149,9 @@ struct TConfig
 	// Extra devices
 	int EnableBMP085;
 	int EnableBME280;
+	int EnableBMP280;
 	int ExternalDS18B20;
+	int ExternalTempHumx21;
 	
 	// Logging
 	int EnableGPSLogging;
