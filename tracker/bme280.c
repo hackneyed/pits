@@ -86,7 +86,7 @@ int bme280Calibration(struct TBME *bme);
 int bme280ReadInt(struct TBME *bme, unsigned char address);
 // double bme280ReadUP(short fd);
 int BMEAddress;
-bool
+
 
 // detection code doesn't work well, just set the correct address here
 
