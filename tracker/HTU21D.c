@@ -46,7 +46,7 @@ double getHumidity(int fd)
 	return -6.0 + (125.0 * tSensorHumid);
 }
 
-void *HTU21Loop(void *some_void_ptr)
+void *HTU21DLoop(void *some_void_ptr)
 {
 	struct TGPS *GPS;
 	float Temp;

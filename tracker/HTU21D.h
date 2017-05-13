@@ -12,6 +12,6 @@ double getTemperature(int fd);
 // Get humidity
 double getHumidity(int fd);
 
-void *HTU21Loop(void *some_void_ptr);
+void *HTU21DLoop(void *some_void_ptr);
 
 #endif
