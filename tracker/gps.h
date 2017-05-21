@@ -11,13 +11,15 @@ struct TGPS
 	unsigned int Satellites;
 	int Speed;
 	int Direction;
-	float DS18B20Temperature[2];
+	float HTU21DTemperature;
+	float ExternalHumidity;
+
 	float BatteryVoltage;
 	float BMP180Temperature;
-	float Humidity;
 	float Pressure;
+	float BME280Humidity;
 	float BoardCurrent;
-	int DS18B20Count;
+	//int DS18B20Count;
 	float PredictedLongitude, PredictedLatitude;
 	int FlightMode;
 	int PowerMode;

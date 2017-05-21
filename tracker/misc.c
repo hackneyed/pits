@@ -818,17 +818,24 @@ int BuildSentence(unsigned char *TxLine, int Channel, struct TGPS *GPS)
 	// BMP Pressure/Temperature/Humidity, if available
 	if (Config.EnableBME280)
 	{
-		sprintf(ExtraFields2, ",%.1f,%.0f,%0.1f", GPS->BMP180Temperature, GPS->Pressure, GPS->Humidity);
+		sprintf(ExtraFields2, ",%3.1f,%.0f,%0.1f", GPS->BMP180Temperature, GPS->Pressure, GPS->BME280Humidity);
 	}
-	else if (Config.EnableBMP085)
+	else if (Config.EnableBMP085 || Config.EnableBMP280)
 	{
-		sprintf(ExtraFields2, ",%.1f,%.0f", GPS->BMP180Temperature, GPS->Pressure);
+		sprintf(ExtraFields2, ",%3.1f,%.0f", GPS->BMP180Temperature, GPS->Pressure);
 	}
 	
-	// Second DS18B20 Temperature Sensor, if available
-	if (GPS->DS18B20Count > 1)
+	//disable DS18B20
+//	// Second DS18B20 Temperature Sensor, if available
+//	if (GPS->DS18B20Count > 1)
+//	{
+//		sprintf(ExtraFields3, ",%3.1f", GPS->DS18B20Temperature[Config.ExternalDS18B20]);
+//	}
+
+	//External HTU21/Si7021 temp/hum sensor if available
+	if (GPS->HTU21DTemperature)
 	{
-		sprintf(ExtraFields3, ",%3.1f", GPS->DS18B20Temperature[Config.ExternalDS18B20]);
+		sprintf(ExtraFields3, ",%3.1f,%0.1f", GPS->HTU21DTemperature, GPS->ExternalHumidity);
 	}
 	
 	// Landing Prediction, if enabled
@@ -919,7 +926,7 @@ int BuildSentence(unsigned char *TxLine, int Channel, struct TGPS *GPS)
 				(GPS->Speed * 13) / 7,
 				GPS->Direction,
 				GPS->Satellites,
-				GPS->DS18B20Temperature[(GPS->DS18B20Count > 1) ? (1-Config.ExternalDS18B20) : 0],
+				GPS->HTU21DTemperature,
 				ExtraFields1,
 				ExtraFields2,
 				ExtraFields3,

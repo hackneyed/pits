@@ -331,7 +331,7 @@ void SendAPRS(struct TGPS *GPS)
 	// Construct the compressed telemetry format
 	ax25_base91enc(stlm + 0, 2, seq);
 	ax25_base91enc(stlm + 2, 2, GPS->Satellites);
-	aprs_temperature = GPS->DS18B20Temperature[0] + 100;
+	aprs_temperature = GPS->HTU21DTemperature + 100;
 	GPS->BatteryVoltage = 4.321;
 	aprs_voltage = GPS->BatteryVoltage * 1000;
 	ax25_base91enc(stlm + 4, 2, aprs_temperature);

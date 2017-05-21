@@ -87,8 +87,11 @@ int bme280ReadInt(struct TBME *bme, unsigned char address);
 // double bme280ReadUP(short fd);
 int BMEAddress;
 
-#define BME280_ADDRESS 0x76  		// Possible I2C address of BME280 pressure sensor (could also be on ox77)
 
+// detection code doesn't work well, just set the correct address here
+
+//#define BME280_ADDRESS 0x76  		// Possible I2C address of BME280 pressure sensor (could also be on ox77)
+#define BME280_ADDRESS 0x77  		// Possible I2C address of BME280 pressure sensor (could also be on ox77)
 
 int BMEPresent(struct TBME *bme, int Address)
 {
@@ -96,12 +99,16 @@ int BMEPresent(struct TBME *bme, int Address)
 	
 	IsPresent = 0;
 	
+	//~ printf("is BME present at 0x%02X?\n",Address);
+	
 	if ((bme->fd = open_i2c(Address)) >= 0)
 	{
 		IsPresent = bme280Calibration(bme);
 		
 		close(bme->fd);
 	}
+	
+	//~ printf("BME present? %d\n",IsPresent);
 	
 	return IsPresent;
 }
@@ -439,11 +446,11 @@ void *BME280Loop(void *some_void_ptr)
 			
 			GPS->BMP180Temperature = bme280Temperature(&bme);
 			GPS->Pressure = bme280Pressure(&bme);
-			GPS->Humidity = bme280Humidity(&bme);
+			GPS->BME280Humidity = bme280Humidity(&bme);
 
-			// printf("Temperature is %5.2lf\n", GPS->BMP180Temperature);
-			// printf("Pressure is %5.2lf\n", GPS->Pressure);
-			// printf("Humidity is %5.2lf\n", GPS->Humidity);
+			 printf("Temperature is %5.2lf\n", GPS->BMP180Temperature);
+			 printf("Pressure is %5.2lf\n", GPS->Pressure);
+			 printf("Humidity is %5.2lf\n", GPS->BME280Humidity);
 
 			close(bme.fd);
 		}
