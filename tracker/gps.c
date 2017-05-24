@@ -504,7 +504,11 @@ void ProcessLine(struct gps_info *bb, struct TGPS *GPS, char *Buffer, int Count)
 	int lock, satellites;
 	char active, ns, ew, units, timestring[16], speedstring[16], *course, *date, restofline[80], *ptr;
 	
-    if (GPSChecksumOK(Buffer, Count))
+	int csOK;
+	csOK = GPSChecksumOK(Buffer, Count);
+	//printf("checksum ok? %d\n", csOK);
+	
+    if (csOK)
 	{
 		satellites = 0;
 	
@@ -513,6 +517,8 @@ void ProcessLine(struct gps_info *bb, struct TGPS *GPS, char *Buffer, int Count)
 			GPS->MessageCount++;
 			if (sscanf(Buffer+7, "%f,%f,%c,%f,%c,%d,%d,%f,%f,%c", &utc_time, &latitude, &ns, &longitude, &ew, &lock, &satellites, &hdop, &altitude, &units) >= 1)
 			{	
+				/* only update GPS struct if we have a fix (>= 4 sats) */
+				
 				// $GPGGA,124943.00,5157.01557,N,00232.66381,W,1,09,1.01,149.3,M,48.6,M,,*42
 				if (satellites >= 4)
 				{
@@ -659,38 +665,48 @@ void *GPSLoop(void *some_void_ptr)
     while (1)
     {
 		unsigned char Character;
+		
+		printf("GPS Thread\n");
 	
 		if (OpenGPSPort(&bb, Config.GPSDevice, 0x42, Config.SDA, Config.SCL, 2000, 100))		// struct, i2c address, SDA, SCL, ns clock delay, timeout ms
 		{
 			printf("Failed to open GPS\n");
 			bb.Failed = 1;
 		}
-			
+		
+		/* debug */	
+		//printf("bb failed? %d\n",bb.Failed);
+		
         while (!bb.Failed)
         {
             Character = GPSGetc(&bb);
-			// if (Character == 0xFF) printf("."); else printf("%c", Character);
+            
+			/* debug - print characters as we get them*/
+			//if (Character == 0xFF) printf("."); else printf("%c", Character);
 
 			if (Character == 0xFF)
 			{
-				delay(100);
+				delay(20);
 			}
             else if (Character == '$')
 			{
 				Line[0] = Character;
 				Length = 1;
 			}
-            else if (Length > 90)
-			{
-				Length = 0;
-            }
+            //else if (Length > 90)
+			//{
+				//Length = 0;
+            //}
             else if ((Length > 0) && (Character != '\r'))
             {
                	Line[Length++] = Character;
                	if (Character == '\n')
                	{
                		Line[Length] = '\0';
-					// puts(Line);
+               		
+					/* print line for debug */
+					puts(Line);
+					
                		ProcessLine(&bb, GPS, Line, Length);
 					
 					if (++SentenceCount > 100) SentenceCount = 0;
@@ -713,7 +729,7 @@ void *GPSLoop(void *some_void_ptr)
 					}
 
                		Length = 0;
-					delay(100);
+					delay(20);
                	}
             }
 		}
