@@ -45,7 +45,7 @@ typedef struct{
 // APRS / AFSK variables
   
 #define APRS_DEVID "APEHAB"  
-#define APRS_COMMENT "http://www.pi-in-the-sky.com"
+#define APRS_COMMENT "RanchoScienceClub"
  
 /* "converts" 4-char string to long int */
 #define dw(a) (*(UL*)(a))
@@ -233,7 +233,8 @@ void make_and_write_byte(FILE *f, UL cycles_per_bit, UL baud, UL lfreq, UL hfreq
 {
 	int i;
 	
-	// printf("%02X ", Character);
+	/* debug */
+	printf("%02X ", Character);
 		
 	for (i=0; i<8; i++)
 	{
@@ -278,6 +279,9 @@ void makeafsk(UL freq, UL baud, UL lfreq, UL hfreq, unsigned char Message[4][200
 		// Write preamble
 		for (j=0; j<message_count; j++)
 		{
+			/* debug */
+			printf("APRS message %d:\n", j + 1);
+			
 			for (i=0; i<flags_before; i++)
 			{
 				make_and_write_byte(f, cycles_per_bit, baud, lfreq, hfreq, 0x7E, 0);
@@ -299,6 +303,9 @@ void makeafsk(UL freq, UL baud, UL lfreq, UL hfreq, unsigned char Message[4][200
 			{
 				make_and_write_freq(f, cycles_per_bit, baud, lfreq, hfreq, 0);
 			}
+			
+			/* print newline for debugging */
+			printf("\n");
 		}
 		
 		fclose(f);
@@ -332,10 +339,12 @@ void SendAPRS(struct TGPS *GPS)
 	ax25_base91enc(stlm + 0, 2, seq);
 	ax25_base91enc(stlm + 2, 2, GPS->Satellites);
 	aprs_temperature = GPS->HTU21DTemperature + 100;
-	GPS->BatteryVoltage = 4.321;
+	//GPS->BatteryVoltage = 4.321;
 	aprs_voltage = GPS->BatteryVoltage * 1000;
 	ax25_base91enc(stlm + 4, 2, aprs_temperature);
 	ax25_base91enc(stlm + 6, 2, aprs_voltage);
+	
+	// ax25_frame(uint8_t *frame, int *length, char *scallsign, char sssid, char *dcallsign, char dssid, char ttl1, char ttl2, char *data, ...)
 	
     ax25_frame(frames[0], &lengths[0],
 		Config.APRS_Callsign,
@@ -425,7 +434,15 @@ void LoadAPRSConfig(FILE *fp, struct TConfig *Config)
 
 int TimeToSendAPRS(long GPS_Seconds, long APRS_Period, long APRS_Offset)
 {
-	return ((GPS_Seconds + APRS_Period - APRS_Offset) % APRS_Period) <= 1;
+	/* for debug purposes */
+	int isItTime;
+	isItTime = ((GPS_Seconds + APRS_Period - APRS_Offset) % APRS_Period);
+	printf("is it time to send APRS? %d\n", isItTime);
+	/* end debug */
+	
+		
+	return (isItTime <= 1);
+	
 }
 
 void *APRSLoop(void *some_void_ptr)
