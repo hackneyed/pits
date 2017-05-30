@@ -152,6 +152,7 @@ struct TConfig
 	int EnableBMP280;
 	int ExternalDS18B20;
 	int ExternalTempHumx21;
+	int ExternalADC;
 	
 	// Logging
 	int EnableGPSLogging;

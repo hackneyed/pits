@@ -54,6 +54,7 @@
 #include "prediction.h"
 #include "log.h"
 #include "HTU21D.h"
+#include "ads1015.h"
 
 struct TConfig Config;
 
@@ -168,6 +169,13 @@ void LoadConfigFile(struct TConfig *Config)
 	{
 		printf("BMP280 Enabled\n");
 	}
+	
+	/* add support for external ADS1015 module */
+	ReadBoolean(fp, "external_adc", -1, 0, &(Config->ExternalADC));
+	if (Config->ExternalADC)
+	{
+		printf("External ADS1015 ADC Enabled\n");
+	}
 
 	ReadString(fp, "pipe_payload", -1, Config->Channels[PIPE_CHANNEL].PayloadID, sizeof(Config->Channels[PIPE_CHANNEL].PayloadID), 0);
 	if (Config->Channels[PIPE_CHANNEL].PayloadID[0])
@@ -260,6 +268,9 @@ void LoadConfigFile(struct TConfig *Config)
 	}
 	
 	// External data file
+	/* this appears to only be for data coming from an external script
+	 * to get injected into the payload
+	 * This is not for GPS NMEA data!  */
 	Config->ExternalDataFileName[0] = '\0';
 	ReadString(fp, "external_data", -1, Config->ExternalDataFileName, sizeof(Config->ExternalDataFileName), 0);
 
@@ -622,8 +633,8 @@ int main(void)
 	struct stat st = {0};
 	struct TGPS GPS;
 	pthread_t PredictionThread, LoRaThread, APRSThread, GPSThread,
-		HTU21DThread, ADCThread, CameraThread, BMP085Thread,
-		BME280Thread, BMP280Thread, LEDThread, LogThread, PipeThread;
+		HTU21DThread, ADCThread, CameraThread, BMP085Thread, BME280Thread, 
+		BMP280Thread, LEDThread, ExternalADCThread, LogThread, PipeThread;
 	if (prog_count("tracker") > 1)
 	
 	{
@@ -723,6 +734,7 @@ int main(void)
 	GPS.HTU21DTemperature = 0.0;
 	GPS.ExternalHumidity = 0.0;
 	GPS.BatteryVoltage = 0.0;
+	GPS.AuxVoltage = 0.0;
 	GPS.BoardCurrent = 0.0;	
 	GPS.BMP180Temperature = 0.0;
 	GPS.Pressure = 0.0;
@@ -869,6 +881,17 @@ int main(void)
 				}
 			}
 		}
+	}
+	
+	/* start external ADC thread */
+	if (Config.ExternalADC)
+	{
+		printf("External ADS1015 ADC enabled, starting thread...\n");
+		if (pthread_create(&ExternalADCThread, NULL, ADS1015ADCLoop, &GPS))
+			{
+				fprintf(stderr, "Error creating ADC thread\n");
+				return 1;
+			}
 	}
 
 	if (Config.Camera)

@@ -798,7 +798,14 @@ int BuildSentence(unsigned char *TxLine, int Channel, struct TGPS *GPS)
 	ExtraFields6[0] = '\0';
 	
 	// Battery voltage and current, if available
-	if ((Config.BoardType == 3) || (Config.BoardType == 4) || (Config.DisableADC))
+	
+	// check for external ADC first
+	if (Config.ExternalADC)
+	{
+		// external ADC has four channels, two single-ended and one differential
+		sprintf(ExtraFields1, ",%.1f,%.1f,%.3f", GPS->BatteryVoltage, GPS->AuxVoltage, GPS->BoardCurrent);
+	}
+	else if ((Config.BoardType == 3) || (Config.BoardType == 4) || (Config.DisableADC))
 	{
 			// Pi Zero - no ADC on the PITS Zero, or manually disabled ADC
 	}
@@ -814,6 +821,8 @@ int BuildSentence(unsigned char *TxLine, int Channel, struct TGPS *GPS)
 
 		sprintf(ExtraFields1, ",%.1f,%.3f", GPS->BatteryVoltage, GPS->BoardCurrent);
 	}
+	
+
 	
 	// BMP Pressure/Temperature/Humidity, if available
 	if (Config.EnableBME280)
@@ -916,7 +925,7 @@ int BuildSentence(unsigned char *TxLine, int Channel, struct TGPS *GPS)
 	}
 	else
 	{
-		sprintf((char *)TxLine, "$$%s,%d,%s,%7.5lf,%7.5lf,%5.5" PRId32  ",%d,%d,%d,%s%s%s%s%s%s%s",
+		sprintf((char *)TxLine, "$$%s,%d,%s,%7.5lf,%7.5lf,%5.5" PRId32  ",%d,%d,%d%s%s%s%s%s%s%s",
 //		sprintf((char *)TxLine, "$$%s,%d,%s,%7.5lf,%7.5lf,%5.5" PRId32  ",%d,%d,%d,%3.1f%s%s%s%s%s%s%s",
 
 				Config.Channels[Channel].PayloadID,

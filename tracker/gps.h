@@ -13,7 +13,7 @@ struct TGPS
 	int Direction;
 	float HTU21DTemperature;
 	float ExternalHumidity;
-
+	float AuxVoltage;
 	float BatteryVoltage;
 	float BMP180Temperature;
 	float Pressure;
