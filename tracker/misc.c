@@ -833,7 +833,7 @@ int BuildSentence(unsigned char *TxLine, int Channel, struct TGPS *GPS)
 //	}
 
 	//External HTU21/Si7021 temp/hum sensor if available
-	if (GPS->HTU21DTemperature)
+	if (Config.ExternalTempHumx21)
 	{
 		sprintf(ExtraFields3, ",%3.1f,%0.1f", GPS->HTU21DTemperature, GPS->ExternalHumidity);
 	}
@@ -916,7 +916,9 @@ int BuildSentence(unsigned char *TxLine, int Channel, struct TGPS *GPS)
 	}
 	else
 	{
-		sprintf((char *)TxLine, "$$%s,%d,%s,%7.5lf,%7.5lf,%5.5" PRId32  ",%d,%d,%d,%3.1f%s%s%s%s%s%s%s",
+		sprintf((char *)TxLine, "$$%s,%d,%s,%7.5lf,%7.5lf,%5.5" PRId32  ",%d,%d,%d,%s%s%s%s%s%s%s",
+//		sprintf((char *)TxLine, "$$%s,%d,%s,%7.5lf,%7.5lf,%5.5" PRId32  ",%d,%d,%d,%3.1f%s%s%s%s%s%s%s",
+
 				Config.Channels[Channel].PayloadID,
 				Config.Channels[Channel].SentenceCounter,
 				TimeBuffer,
@@ -926,7 +928,7 @@ int BuildSentence(unsigned char *TxLine, int Channel, struct TGPS *GPS)
 				(GPS->Speed * 13) / 7,
 				GPS->Direction,
 				GPS->Satellites,
-				GPS->HTU21DTemperature,
+				//GPS->HTU21DTemperature,
 				ExtraFields1,
 				ExtraFields2,
 				ExtraFields3,
