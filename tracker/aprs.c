@@ -245,7 +245,7 @@ void make_and_write_byte(FILE *f, UL cycles_per_bit, UL baud, UL lfreq, UL hfreq
 
  
 /* makes wav file */
-void makeafsk(UL freq, UL baud, UL lfreq, UL hfreq, unsigned char Message[4][200], int message_length[], int message_count, int total_message_length)
+void makeafsk(UL freq, UL baud, UL lfreq, UL hfreq, unsigned char Message[5][200], int message_length[], int message_count, int total_message_length)
 {
 	UL preamble_length, postamble_length, flags_before, flags_after, cycles_per_bit, cycles_per_byte, total_cycles;
 	FILE *f;
@@ -315,8 +315,8 @@ void makeafsk(UL freq, UL baud, UL lfreq, UL hfreq, unsigned char Message[4][200
 	
 void SendAPRS(struct TGPS *GPS)
 {
-	unsigned char frames[4][200];
-	int lengths[4];
+	unsigned char frames[5][200];
+	int lengths[5];
 	int message_count, total_length;
 	char stlm[9];
 	char slat[5];
@@ -339,12 +339,11 @@ void SendAPRS(struct TGPS *GPS)
 	ax25_base91enc(stlm + 0, 2, seq);
 	ax25_base91enc(stlm + 2, 2, GPS->Satellites);
 	aprs_temperature = GPS->HTU21DTemperature + 100;
-	//GPS->BatteryVoltage = 4.321;
 	aprs_voltage = GPS->BatteryVoltage * 1000;
 	ax25_base91enc(stlm + 4, 2, aprs_temperature);
 	ax25_base91enc(stlm + 6, 2, aprs_voltage);
 	
-	// ax25_frame(uint8_t *frame, int *length, char *scallsign, char sssid, char *dcallsign, char dssid, char ttl1, char ttl2, char *data, ...)
+// ax25_frame(uint8_t *frame, int *length, char *scallsign, char sssid, char *dcallsign, char dssid, char ttl1, char ttl2, char *data, ...)
 	
     ax25_frame(frames[0], &lengths[0],
 		Config.APRS_Callsign,
@@ -363,8 +362,8 @@ void SendAPRS(struct TGPS *GPS)
 		// ax25_base91enc(slat, 4, aprs_lat),
 		// ax25_base91enc(slng, 4, aprs_lon),
 		// aprs_alt, stlm, comment, Config.APRS_Callsign, Count);
-		
-
+	
+	
 	if (Config.APRS_Telemetry)
 	{
 		char s[10];
@@ -403,6 +402,31 @@ void SendAPRS(struct TGPS *GPS)
 
 		message_count += 3;	
 	}
+	
+	if (Config.APRS_PlainText)
+	{
+		// print callsign data
+		char s[10];
+
+		sprintf(s, strncpy(s, Config.APRS_Callsign, 7));
+		if(Config.APRS_ID) snprintf(s + strlen(s), 4, "-%i", Config.APRS_ID);
+		
+		unsigned char sentence[100];
+		
+		BuildSentence(sentence,APRS_CHANNEL,GPS);
+		
+		ax25_frame(frames[4], &lengths[4],
+			Config.APRS_Callsign,
+			Config.APRS_ID,
+			APRS_DEVID, 0, 0, 0,
+			":%-9s:%s",
+			sentence);
+			
+		total_length += lengths[4];
+		
+		message_count += 1;
+	
+	}
 			
 	makeafsk(48000, 1200, 1200, 2200, frames, lengths, message_count, total_length);
 }
@@ -418,6 +442,7 @@ void LoadAPRSConfig(FILE *fp, struct TConfig *Config)
 	Config->APRS_Period = ReadInteger(fp, "APRS_Period", -1, 0, 1);
 	Config->APRS_Offset = ReadInteger(fp, "APRS_Offset", -1, 0, 0);
 	Config->APRS_Random = ReadInteger(fp, "APRS_Random", -1, 0, 0);
+	ReadBoolean(fp, "APRS_PlainText", -1, 0, &(Config->APRS_PlainText));
 	ReadBoolean(fp, "APRS_HighPath", -1, 0, &(Config->APRS_HighPath));
 	Config->APRS_Altitude = ReadInteger(fp, "APRS_Altitude", -1, 0, 0);
 	ReadBoolean(fp, "APRS_Preemphasis", -1, 0, &(Config->APRS_Preemphasis));

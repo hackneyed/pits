@@ -184,6 +184,7 @@ struct TConfig
 	int APRS_HighPath;
 	int APRS_Preemphasis;
 	int APRS_Telemetry;
+	int APRS_PlainText;
 	
 	// LoRa Settings
 	struct TLoRaDevice LoRaDevices[2];
